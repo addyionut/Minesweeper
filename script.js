@@ -79,6 +79,9 @@ setZeros();
 setMinesNumber();
 
 function clickableGrid(){
+  randomMines();
+  setZeros();
+  setMinesNumber();
   let discoverableCells = rows * cols - minesNumber;
   let grid = document.getElementById('gameBoard');
   for (let r = 1; r <= rows; ++r){
