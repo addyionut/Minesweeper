@@ -9,9 +9,21 @@
   </head>
   <body>
   	<h1>MINESWEEPER</h1>
+    <div id="levelButtons">
+      <button id="levelBeginner" onclick="setMinesNo(levelBeginner)">Beginner</button>
+      <button id="levelIntermediate" onclick="setMinesNo(levelIntermediate)">Intermediate</button>
+      <button id="levelExpert" onclick="setMinesNo(levelExpert)">Expert</button>
+    </div>
+    <div id = minesNo>
+      <p id = "text">Set the mines number: </p>
+      <button id="min" onclick="setTableBoard(id)"></button>
+      <button id="med" onclick="setTableBoard(id)"></button>
+      <button id="max" onclick="setTableBoard(id)"></button>
+    </div>
     <p id="gameMsg"></p>
     <table id="gameBoard" class="grid">
     </table>
+    <input type="button" value="Restart game" onclick="restartGame()">
   	<script type="text/javascript" src="script.js"></script>
   </body>
 </html>
