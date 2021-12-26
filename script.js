@@ -1,21 +1,20 @@
 const msg = document.getElementById('gameMsg');
 msg.innerHTML = "GOOD LUCK!";
 msg.style.display = "none";
-let rows, cols;
+let rows, cols, currentRow, currentCol;
+let discoverableCells;
+let difficulty = document.getElementById('minesNo');
 let text = document.getElementById('text');
 let min = document.getElementById('min');
 let med = document.getElementById('med');
 let max = document.getElementById('max');
-text.style.display = "none";
-min.style.display = "none";
-med.style.display = "none";
-max.style.display = "none";
+difficulty.style.display = "none";
 let gameStatus = true;
 let matrix = [];
-for(let i = 0; i < 18; i++) {
+for(let i = 0; i < 17; i++) {
   matrix[i] = [];
-  for(let j = 0; j < 26; j++) {
-    matrix[i][j] = "";
+  for(let j = 0; j < 25; j++) {
+    matrix[i][j] = 0;
   }
 }
 
@@ -30,16 +29,6 @@ function randomMines(minesNumber) {
     if (matrix[positionX][positionY] !== "💣") {
       matrix[positionX][positionY] = "💣";
       ++i;
-    }
-  }
-}
-
-function setZeros(rows, cols) {
-   for (let x = 0; x < rows + 2; ++x) {
-    for (let y = 0; y < cols + 2; ++y) {
-      if (matrix[x][y] !== "💣") {
-        matrix[x][y] = 0;
-      }
     }
   }
 }
@@ -77,12 +66,39 @@ function setMinesNumber(rows, cols) {
   }
 }
 
+function showCell(x, y) {
+  if (matrix[x][y] === 0) {
+    document.getElementById(x + '-' + y).innerHTML = '';
+  }
+  else {
+    document.getElementById(x + '-' + y).innerHTML = matrix[x][y];
+  }
+  document.getElementById(x + '-' + y).style.backgroundColor = "white";
+  document.getElementById(x + '-' + y).style.fontWeight = "bold";
+}
+
+function unveilEmptyCells(row, col) {
+  for (let m = row - 1; m <= row + 1; ++m) {
+    for (let n = col - 1; n <= col + 1; ++n) { 
+      if (m > 0 &&  m <= rows && n > 0 && n <= cols && document.getElementById(m + '-' + n).style.backgroundColor !== "white") {
+        showCell(m,n);
+        --discoverableCells;
+        if (matrix[m][n] === 0) {
+          unveilEmptyCells(m, n);
+        }
+        if (discoverableCells === 0) {
+          gameWon();
+        }
+      }
+    }
+  }
+}
+
 function clickableGrid(minesNumber){
   randomMines(minesNumber);
-  setZeros(rows, cols);
   setMinesNumber(rows, cols);
   msg.style.display = "block";
-  let discoverableCells = rows * cols - minesNumber;
+  discoverableCells = rows * cols - minesNumber;
   let grid = document.getElementById('gameBoard');
   for (let r = 1; r <= rows; ++r){
     let tr = grid.appendChild(document.createElement('tr'));
@@ -93,34 +109,31 @@ function clickableGrid(minesNumber){
       let ids = cell.id.split('-');
       //function for left-click
       cell.addEventListener('click', function() {
-        if (gameStatus) {
-          if (matrix[ids[0]][ids[1]] === "💣" && cellsId.innerHTML !== "🚩") {           
+        if (gameStatus && cellsId.innerHTML !== "🚩") {
+          if (matrix[ids[0]][ids[1]] === "💣") {           
             for (let x = 1; x <= rows; ++x) {
               for (let y = 1; y <= cols; ++y) {
                 if (matrix[x][y] === "💣") {
-                  document.getElementById(x + '-' + y).innerHTML = "💣";
-                  document.getElementById(x + '-' + y).style.backgroundColor = "crimson";
-                  msg.innerHTML = "GAME OVER!";
-                  msg.style.backgroundColor = "crimson";
-                  gameStatus = false;
+                  gameOver(x, y);
                 }
               }
             }
           }
-          else if (cellsId.innerHTML !== "🚩") {
-            if (cellsId.style.backgroundColor !== "white") {
+          else if (cellsId.style.backgroundColor !== "white") {  
+            if (matrix[r][c] !== 0) {
+              showCell(r, c);
               --discoverableCells;
-            }           
-            cellsId.innerHTML = matrix[ids[0]][ids[1]];
-            cellsId.style.backgroundColor = "white";
-            cellsId.style.fontWeight = "bold";
-            if (discoverableCells === 0) {
-              msg.innerHTML = "YOU WON!";
-              msg.style.backgroundColor = "lawngreen";
-              gameStatus = false;
+            } 
+            else if (matrix[r][c] === 0) {
+              showCell(r, c);
+              --discoverableCells;
+              unveilEmptyCells(r, c);
             }
-          }
-        }    
+          } 
+        } 
+        if (discoverableCells === 0) {
+          gameWon();
+        }
       });
       //function for right-click
       cell.addEventListener('contextmenu', function(e) {
@@ -155,10 +168,7 @@ function setMinesNo(id) {
 }
 
 function setLevels(cols) { 
-  text.style.display = "inline";
-  min.style.display = "inline";
-  med.style.display = "inline";
-  max.style.display = "inline";
+  difficulty.style.display = "inline";
   if (cols === 9) {
     min.innerHTML = 10;
     med.innerHTML = 15;
@@ -185,6 +195,20 @@ function setTableBoard(id) {
 function disableButtons() {
   document.getElementById('minesNo').style.display = "none";
   document.getElementById('levelButtons').style.display = "none";
+}
+
+function gameWon() {
+  msg.innerHTML = "YOU WON!";
+  msg.style.backgroundColor = "lawngreen";
+  gameStatus = false;
+}
+
+function gameOver(x, y) {
+  document.getElementById(x + '-' + y).innerHTML = "💣";
+  document.getElementById(x + '-' + y).style.backgroundColor = "crimson";
+  msg.innerHTML = "GAME OVER!";
+  msg.style.backgroundColor = "crimson";
+  gameStatus = false;
 }
 
 function restartGame() {
